@@ -27,8 +27,8 @@ const DayScaffoldTemplate =
     \\    var reader = stream.reader();
     \\    var process_buffer = try std.ArrayList(u8).initCapacity(alloc, source.input_src.len);
     \\    var buffer_writer = process_buffer.writer();
-    \\    while (reader.streamUntilDelimiter(buffer_writer, '\n', null)) |line| {{
-    \\        _ = line;
+    \\
+    \\    while (reader.streamUntilDelimiter(buffer_writer, '\n', null)) |_| {{
     \\        // Process input here
     \\    }} else |err| switch (err) {{
     \\        error.EndOfStream => {{}},
@@ -36,14 +36,13 @@ const DayScaffoldTemplate =
     \\    }}
     \\}}
     \\
-    \\
     \\pub fn processPartTwo(alloc: std.mem.Allocator) !void {{
     \\    var stream = std.io.fixedBufferStream(source.input_sample2);
     \\    var reader = stream.reader();
     \\    var process_buffer = try std.ArrayList(u8).initCapacity(alloc, source.input_src.len);
     \\    var buffer_writer = process_buffer.writer();
-    \\    while (reader.streamUntilDelimiter(buffer_writer, '\n', null)) |line| {{
-    \\        _ = line;
+    \\
+    \\    while (reader.streamUntilDelimiter(buffer_writer, '\n', null)) |_| {{
     \\        // Process input here
     \\    }} else |err| switch (err) {{
     \\        error.EndOfStream => {{}},
