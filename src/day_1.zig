@@ -1,6 +1,14 @@
 const std = @import("std");
 const source = @import("days/day_1/day_1_input.zig");
 
+pub fn partOneHeader() !void {
+    try std.io.getStdOut().writer().print("=== AoC'23 Day 1 - Part 1 ===\n", .{});
+}
+
+pub fn partTwoHeader() !void {
+    try std.io.getStdOut().writer().print("=== AoC'23 Day 1 - Part 2 ===\n", .{});
+}
+
 pub fn processPartOne(alloc: std.mem.Allocator) !void {
     var stream = std.io.fixedBufferStream(source.input_sample1);
     var reader = stream.reader();

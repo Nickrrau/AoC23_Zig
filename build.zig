@@ -14,6 +14,14 @@ const DayScaffoldTemplate =
     \\const std = @import("std");
     \\const source = @import("days/day_{d}/day_{d}_input.zig");
     \\
+    \\pub fn partOneHeader() !void {{
+    \\    try std.io.getStdOut().writer().print("=== AoC'23 Day {d} - Part 1 ===\n", .{{}});
+    \\}}
+    \\
+    \\pub fn partTwoHeader() !void {{
+    \\    try std.io.getStdOut().writer().print("=== AoC'23 Day {d} - Part 2 ===\n", .{{}});
+    \\}}
+    \\
     \\pub fn processPartOne(alloc: std.mem.Allocator) !void {{
     \\    var stream = std.io.fixedBufferStream(source.input_sample1);
     \\    var reader = stream.reader();
@@ -43,21 +51,6 @@ const DayScaffoldTemplate =
     \\    }}
     \\}}
     \\
-    \\pub fn main() !void {{
-    \\    var allocator = std.heap.HeapAllocator.init();
-    \\    {{
-    \\        try std.io.getStdOut().writer().print("=== AoC'23 Day {d} - Part 1 ===\n", .{{}});
-    \\        var arena = std.heap.ArenaAllocator.init(allocator.allocator());
-    \\        defer arena.deinit();
-    \\        try processPartOne(arena.allocator());
-    \\    }}
-    \\    {{
-    \\        try std.io.getStdOut().writer().print("=== AoC'23 Day {d} - Part 2 ===\n", .{{}});
-    \\        var arena = std.heap.ArenaAllocator.init(allocator.allocator());
-    \\        defer arena.deinit();
-    \\        try processPartTwo(arena.allocator());
-    \\    }}
-    \\}}
 ;
 
 fn getInput(alloc: std.mem.Allocator, day: usize) ![]const u8 {
@@ -135,12 +128,15 @@ pub fn build(b: *std.Build) !void {
         if (std.mem.eql(u8, entry.name[0..4], "day_")) {
             const step = b.step(entry.name, "");
 
+            const mod = b.createModule(.{ .source_file = .{ .path = try std.fmt.allocPrint(b.allocator, "src/{s}.zig", .{entry.name}) } });
+
             const exe = b.addExecutable(.{
                 .name = try std.fmt.allocPrint(b.allocator, "advent_of_code_2023_day_{s}", .{entry.name}),
-                .root_source_file = .{ .path = try std.fmt.allocPrint(b.allocator, "src/{s}.zig", .{entry.name}) },
+                .root_source_file = .{ .path = "src/main.zig" },
                 .target = target,
                 .optimize = optimize,
             });
+            exe.addModule("day", mod);
             b.installArtifact(exe);
 
             const run_cmd = b.addRunArtifact(exe);
