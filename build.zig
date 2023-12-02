@@ -6,7 +6,8 @@ const DaySrcTemplate =
     \\const std = @import("std");
     \\
     \\pub const input_src = @embedFile("day_{d}_input.txt");
-    \\pub const input_sample = @embedFile("day_{d}_sample.txt");
+    \\pub const input_sample1 = @embedFile("day_{d}_sample_1.txt");
+    \\pub const input_sample2 = @embedFile("day_{d}_sample_2.txt");
     \\
 ;
 const DayScaffoldTemplate =
@@ -14,9 +15,9 @@ const DayScaffoldTemplate =
     \\const source = @import("days/day_{d}/day_{d}_input.zig");
     \\
     \\pub fn processPartOne(alloc: std.mem.Allocator) !void {{
-    \\    var stream = std.io.fixedBufferStream(source.input_sample);
+    \\    var stream = std.io.fixedBufferStream(source.input_sample1);
     \\    var reader = stream.reader();
-    \\    var process_buffer = std.ArrayList(u8).init(alloc);
+    \\    var process_buffer = try std.ArrayList(u8).initCapacity(alloc, source.input_src.len);
     \\    var buffer_writer = process_buffer.writer();
     \\    while (reader.streamUntilDelimiter(buffer_writer, '\n', null)) |line| {{
     \\        _ = line;
@@ -29,9 +30,9 @@ const DayScaffoldTemplate =
     \\
     \\
     \\pub fn processPartTwo(alloc: std.mem.Allocator) !void {{
-    \\    var stream = std.io.fixedBufferStream(source.input_sample);
+    \\    var stream = std.io.fixedBufferStream(source.input_sample2);
     \\    var reader = stream.reader();
-    \\    var process_buffer = std.ArrayList(u8).init(alloc);
+    \\    var process_buffer = try std.ArrayList(u8).initCapacity(alloc, source.input_src.len);
     \\    var buffer_writer = process_buffer.writer();
     \\    while (reader.streamUntilDelimiter(buffer_writer, '\n', null)) |line| {{
     \\        _ = line;
@@ -45,11 +46,13 @@ const DayScaffoldTemplate =
     \\pub fn main() !void {{
     \\    var allocator = std.heap.HeapAllocator.init();
     \\    {{
+    \\        try std.io.getStdOut().writer().print("=== AoC'23 Day {d} - Part 1 ===\n", .{{}});
     \\        var arena = std.heap.ArenaAllocator.init(allocator.allocator());
     \\        defer arena.deinit();
     \\        try processPartOne(arena.allocator());
     \\    }}
     \\    {{
+    \\        try std.io.getStdOut().writer().print("=== AoC'23 Day {d} - Part 2 ===\n", .{{}});
     \\        var arena = std.heap.ArenaAllocator.init(allocator.allocator());
     \\        defer arena.deinit();
     \\        try processPartTwo(arena.allocator());
@@ -87,24 +90,28 @@ fn buildDay(b: *std.Build, s: *std.Build.Step) !void {
     const day_path = try std.fmt.allocPrint(alloc, "src/days/day_{d}", .{day_param.?});
     const day_filepath = try std.fmt.allocPrint(alloc, "{s}/{s}", .{ day_path, day_filename });
 
-    const day_sample_filename = try std.fmt.allocPrint(alloc, "day_{d}_sample.txt", .{day_param.?});
-    const day_sample_filepath = try std.fmt.allocPrint(alloc, "{s}/day_{d}_sample.txt", .{ day_path, day_param.? });
+    const day_sample1_filename = try std.fmt.allocPrint(alloc, "day_{d}_sample_1.txt", .{day_param.?});
+    const day_sample1_filepath = try std.fmt.allocPrint(alloc, "{s}/{s}", .{ day_path, day_sample1_filename });
+    const day_sample2_filename = try std.fmt.allocPrint(alloc, "day_{d}_sample_2.txt", .{day_param.?});
+    const day_sample2_filepath = try std.fmt.allocPrint(alloc, "{s}/{s}", .{ day_path, day_sample2_filename });
 
     const day_input_filename = try std.fmt.allocPrint(alloc, "day_{d}_input.txt", .{day_param.?});
     const day_input_filepath = try std.fmt.allocPrint(alloc, "{s}/day_{d}_input.txt", .{ day_path, day_param.? });
 
-    const scaffold = try std.fmt.allocPrint(alloc, DayScaffoldTemplate, .{ day_param.?, day_param.? });
-    const day_file_contents = try std.fmt.allocPrint(alloc, DaySrcTemplate, .{ day_param.?, day_param.? });
+    const scaffold = try std.fmt.allocPrint(alloc, DayScaffoldTemplate, .{ day_param.?, day_param.?, day_param.?, day_param.? });
+    const day_file_contents = try std.fmt.allocPrint(alloc, DaySrcTemplate, .{ day_param.?, day_param.?, day_param.? });
     const input = try getInput(alloc, day_param.?);
 
     const write_files = b.addWriteFiles();
     const copy_files = b.addWriteFiles();
 
-    const input_sample = write_files.add(day_sample_filename, "");
+    const input_sample1 = write_files.add(day_sample1_filename, "");
+    const input_sample2 = write_files.add(day_sample2_filename, "");
     const input_src = write_files.add(day_input_filename, input);
     const input_zig = write_files.add(day_filename, day_file_contents);
     const scaffold_zig = write_files.add(scaffold_filepath, scaffold);
-    copy_files.addCopyFileToSource(input_sample, day_sample_filepath);
+    copy_files.addCopyFileToSource(input_sample1, day_sample1_filepath);
+    copy_files.addCopyFileToSource(input_sample2, day_sample2_filepath);
     copy_files.addCopyFileToSource(input_src, day_input_filepath);
     copy_files.addCopyFileToSource(input_zig, day_filepath);
     copy_files.addCopyFileToSource(scaffold_zig, scaffold_filepath);
@@ -150,35 +157,4 @@ pub fn build(b: *std.Build) !void {
 
     const new_day = b.step("new", "Start a new day in AoC'23");
     try buildDay(b, new_day);
-
-    const exe = b.addExecutable(.{
-        .name = "advent_of_code_2023",
-        .root_source_file = .{ .path = "src/main.zig" },
-        .target = target,
-        .optimize = optimize,
-    });
-
-    b.installArtifact(exe);
-
-    const run_cmd = b.addRunArtifact(exe);
-
-    run_cmd.step.dependOn(b.getInstallStep());
-
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
-    }
-
-    const run_step = b.step("run", "Run the app");
-    run_step.dependOn(&run_cmd.step);
-
-    const unit_tests = b.addTest(.{
-        .root_source_file = .{ .path = "src/main.zig" },
-        .target = target,
-        .optimize = optimize,
-    });
-
-    const run_unit_tests = b.addRunArtifact(unit_tests);
-
-    const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_unit_tests.step);
 }
