@@ -1,56 +1,8 @@
 const std = @import("std");
 
 const SessionKey = @embedFile("key.secret");
-
-const DaySrcTemplate =
-    \\const std = @import("std");
-    \\
-    \\pub const input_src = @embedFile("day_{d}_input.txt");
-    \\pub const input_sample1 = @embedFile("day_{d}_sample_1.txt");
-    \\pub const input_sample2 = @embedFile("day_{d}_sample_2.txt");
-    \\
-;
-const DayScaffoldTemplate =
-    \\const std = @import("std");
-    \\const source = @import("days/day_{d}/day_{d}_input.zig");
-    \\
-    \\pub fn partOneHeader() !void {{
-    \\    try std.io.getStdOut().writer().print("=== AoC'23 Day {d} - Part 1 ===\n", .{{}});
-    \\}}
-    \\
-    \\pub fn partTwoHeader() !void {{
-    \\    try std.io.getStdOut().writer().print("=== AoC'23 Day {d} - Part 2 ===\n", .{{}});
-    \\}}
-    \\
-    \\pub fn processPartOne(alloc: std.mem.Allocator) !void {{
-    \\    var stream = std.io.fixedBufferStream(source.input_sample1);
-    \\    var reader = stream.reader();
-    \\    var process_buffer = try std.ArrayList(u8).initCapacity(alloc, source.input_src.len);
-    \\    var buffer_writer = process_buffer.writer();
-    \\
-    \\    while (reader.streamUntilDelimiter(buffer_writer, '\n', null)) |_| {{
-    \\        // Process input here
-    \\    }} else |err| switch (err) {{
-    \\        error.EndOfStream => {{}},
-    \\        else => return err,
-    \\    }}
-    \\}}
-    \\
-    \\pub fn processPartTwo(alloc: std.mem.Allocator) !void {{
-    \\    var stream = std.io.fixedBufferStream(source.input_sample2);
-    \\    var reader = stream.reader();
-    \\    var process_buffer = try std.ArrayList(u8).initCapacity(alloc, source.input_src.len);
-    \\    var buffer_writer = process_buffer.writer();
-    \\
-    \\    while (reader.streamUntilDelimiter(buffer_writer, '\n', null)) |_| {{
-    \\        // Process input here
-    \\    }} else |err| switch (err) {{
-    \\        error.EndOfStream => {{}},
-    \\        else => return err,
-    \\    }}
-    \\}}
-    \\
-;
+const DaySrcTemplate = @embedFile("day_src.template");
+const DayScaffoldTemplate = @embedFile("scaffold.template");
 
 fn getInput(alloc: std.mem.Allocator, day: usize) ![]const u8 {
     var url = .{ .url = try std.fmt.allocPrint(alloc, "https://adventofcode.com/2023/day/{d}/input", .{day}) };
