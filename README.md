@@ -13,3 +13,7 @@ Once ready you can then run `zig build day_<x>` which will build a dedicated exe
 | - | - | - |
 | 1 | :star: | :star: |
 | 2 | :star: | :star: |
+| 3 |  |  |
+| 4 | :star: | :star: |
+| 5 | :star: | |
+| 6 | :star: | :star: |
